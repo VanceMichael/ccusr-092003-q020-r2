@@ -1,0 +1,19 @@
+{
+  "schema_version": "1",
+  "domain": "东北算力项目边界评估",
+  "required_fields": [
+    "proposal_ref",
+    "site_ref",
+    "grid_node_ref",
+    "capacity_mw",
+    "evidence_revision",
+    "residency_mode"
+  ],
+  "time_format": "ISO 8601 with offset",
+  "sample": {
+    "proposal_ref": "PROPOSAL-DEMO",
+    "site_ref": "SITE-A",
+    "grid_node_ref": "GRID-A",
+    "capacity_mw": "12.5"
+  }
+}
