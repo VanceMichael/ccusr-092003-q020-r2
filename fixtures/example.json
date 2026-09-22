@@ -1,6 +1,53 @@
 {
-  "proposal_ref": "PROPOSAL-DEMO",
-  "site_ref": "SITE-A",
-  "grid_node_ref": "GRID-A",
-  "capacity_mw": "12.5"
+  "description": "本地示例（不含真实身份）：两个东北园区方案在同一轮评审中锁定各自证据版本，竞争同一变电节点容量",
+  "commitment": {
+    "method": "PUT",
+    "path": "/grid-nodes/GRID-A/commitment",
+    "body": {"committed_mw": 20}
+  },
+  "proposals": [
+    {
+      "proposal_ref": "PROPOSAL-HARBIN-IN",
+      "title": "哈尔滨不出域工业算力方案",
+      "service_mode": "IN_DOMAIN",
+      "capacity_mw": 10,
+      "submitted_at": "2026-09-01T09:00:00+08:00"
+    },
+    {
+      "proposal_ref": "PROPOSAL-HUNCHUN-XB",
+      "title": "珲春面向东北亚跨境算力方案",
+      "service_mode": "CROSS_BORDER",
+      "capacity_mw": 8,
+      "submitted_at": "2026-09-02T09:00:00+08:00"
+    }
+  ],
+  "evidence_example": {
+    "method": "POST",
+    "path": "/evidence",
+    "body": {
+      "evidence_ref": "EV-POWER-GRID-A-WINDOW",
+      "dimension": "power_window",
+      "version_label": "2026-09-v1",
+      "source_ref": "vault://grid/GRID-A/window-2026-09",
+      "source_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "attributes": {
+        "grid_node_ref": "GRID-A",
+        "window_start": "2026-09-01T00:00:00+08:00",
+        "window_end": "2026-12-31T23:59:59+08:00",
+        "tariff_cny_per_mwh": 320
+      },
+      "effective_at": "2026-08-25T00:00:00+08:00"
+    }
+  },
+  "lock_example": {
+    "method": "PUT",
+    "path": "/rounds/ROUND-0001/locks",
+    "body": {
+      "proposal_ref": "PROPOSAL-HARBIN-IN",
+      "dimension": "power_window",
+      "evidence_ref": "EV-POWER-GRID-A-WINDOW",
+      "version_label": "2026-09-v1"
+    }
+  },
+  "note": "attributes 仅接受白名单规范化字段；企业原始台账、合同文本等不进入本系统，只保留 source_ref 与 sha256 摘要"
 }

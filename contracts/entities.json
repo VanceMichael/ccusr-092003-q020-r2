@@ -1,19 +1,83 @@
 {
-  "schema_version": "1",
+  "schema_version": "2",
   "domain": "东北算力项目边界评估",
-  "required_fields": [
-    "proposal_ref",
-    "site_ref",
-    "grid_node_ref",
-    "capacity_mw",
-    "evidence_revision",
-    "residency_mode"
-  ],
   "time_format": "ISO 8601 with offset",
+  "identity_rule": "外部主体仅使用受控引用编号；原始材料只保存 source_ref 与 source_sha256，证据属性仅限下列白名单",
+  "service_modes": ["IN_DOMAIN", "CROSS_BORDER"],
+  "dimensions": {
+    "power_window": {
+      "label": "园区电力窗口",
+      "attributes": {
+        "grid_node_ref": "str",
+        "window_start": "ts",
+        "window_end": "ts",
+        "tariff_cny_per_mwh": "num"
+      },
+      "required_for": ["IN_DOMAIN", "CROSS_BORDER"],
+      "locks_capacity": true
+    },
+    "datacenter_stage": {
+      "label": "机房阶段",
+      "attributes": {
+        "stage": "enum:PLANNING|STRUCTURE|EQUIPMENT_READY|OPERATIONAL",
+        "delivered_mw": "num"
+      },
+      "required_for": ["IN_DOMAIN", "CROSS_BORDER"]
+    },
+    "data_scope": {
+      "label": "工业数据可用范围",
+      "attributes": {
+        "authorization_status": "enum:GRANTED|PENDING|NONE",
+        "scope_labels": "labels[]",
+        "expires_at": "ts (optional)"
+      },
+      "required_for": ["IN_DOMAIN", "CROSS_BORDER"]
+    },
+    "residency": {
+      "label": "数据驻留限制",
+      "attributes": {
+        "mode": "enum:IN_DOMAIN_ONLY|CROSS_BORDER_ALLOWED|NONE"
+      },
+      "required_for": ["IN_DOMAIN", "CROSS_BORDER"],
+      "note": "CROSS_BORDER 方案要求 CROSS_BORDER_ALLOWED"
+    },
+    "research_authorization": {
+      "label": "科研合作授权",
+      "attributes": {
+        "status": "enum:GRANTED|PENDING|NONE",
+        "partner_refs": "labels[]",
+        "expires_at": "ts (optional)"
+      },
+      "required_for": ["CROSS_BORDER"]
+    },
+    "service_area": {
+      "label": "服务区域与跨境服务意向",
+      "attributes": {
+        "regions": "labels[]",
+        "cross_border_intent": "enum:SIGNED|INTENDED|NONE"
+      },
+      "required_for": ["CROSS_BORDER"]
+    }
+  },
+  "endpoints": {
+    "POST /proposals": "登记候选方案 {proposal_ref,title,service_mode,capacity_mw,submitted_at}",
+    "POST /evidence": "登记证据新版本（不可变；同 ref+version 重复登记返回 409）",
+    "PUT /grid-nodes/{grid_node_ref}/commitment": "设置评审采用的节点承诺容量 {committed_mw}",
+    "POST /rounds": "开启评审轮次",
+    "POST /rounds/{round_id}/close": "关闭轮次，锁定全部冻结",
+    "PUT /rounds/{round_id}/locks": "锁定 {proposal_ref,dimension,evidence_ref,version_label}；电力窗口同步原子预留容量",
+    "DELETE /rounds/{round_id}/locks/{proposal_ref}/{dimension}": "解除未决策方案的锁定并释放容量",
+    "GET /rounds/{round_id}/evaluations/{proposal_ref}?as_of=": "按锁定版本展示六维度缺口",
+    "GET /rounds/{round_id}/comparison?service_mode=IN_DOMAIN|CROSS_BORDER": "候选方案横向比较",
+    "GET /reservations?grid_node_ref=": "容量预留台账",
+    "POST /proposals/{proposal_ref}/decision": "{round_id,outcome:APPROVED|REJECTED,rationale_ref}；冻结快照",
+    "POST /proposals/{proposal_ref}/changes": "登记获批后的外部变化 {dimension,summary,changed_at,...}",
+    "GET /proposals/{proposal_ref}/history": "原判断 original_judgement 与后来变化 later_changes_recorded 分列"
+  },
   "sample": {
     "proposal_ref": "PROPOSAL-DEMO",
     "site_ref": "SITE-A",
     "grid_node_ref": "GRID-A",
-    "capacity_mw": "12.5"
+    "capacity_mw": 12.5
   }
 }
