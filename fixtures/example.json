@@ -1,6 +1,108 @@
 {
-  "proposal_ref": "PROPOSAL-DEMO",
-  "site_ref": "SITE-A",
-  "grid_node_ref": "GRID-A",
-  "capacity_mw": "12.5"
+  "description": "本地演示报文（全部主体为不含真实身份的受控引用编号，材料仅以引用+摘要出现）",
+  "walkthrough": [
+    {
+      "step": 1,
+      "request": "POST /grid-nodes",
+      "body": {
+        "grid_node_ref": "GRID-A",
+        "site_ref": "SITE-A",
+        "label": "沈阳-示例变电节点"
+      }
+    },
+    {
+      "step": 2,
+      "request": "POST /grid-nodes/GRID-A/commitments",
+      "body": {
+        "revision": 1,
+        "committed_mw": "30",
+        "effective_from": "2026-08-01T00:00:00+08:00",
+        "note": "电网企业出具的当期可承诺容量"
+      }
+    },
+    {
+      "step": 3,
+      "request": "POST /proposals",
+      "body": {
+        "proposal_ref": "P-LN-01",
+        "site_ref": "SITE-A",
+        "grid_node_ref": "GRID-A",
+        "data_collection_ref": "COLL-ENERGY-09",
+        "research_grant_ref": "PROG-NEA-22",
+        "demand_mw": "20",
+        "max_price_cny_per_kwh": "0.35",
+        "required_data_categories": ["energy_dispatch", "cold_chain_logistics"],
+        "target_mode": "cross_border"
+      }
+    },
+    {
+      "step": 4,
+      "request": "POST /evidence",
+      "body": {
+        "evidence_id": "EV-PW-A-R3",
+        "dimension": "power_window",
+        "subject_ref": "SITE-A",
+        "title": "园区低电价档位公告（第3版）"
+      }
+    },
+    {
+      "step": 5,
+      "request": "POST /evidence/EV-PW-A-R3/revisions",
+      "body": {
+        "revision": 1,
+        "status": "issued",
+        "effective_from": "2026-09-01T00:00:00+08:00",
+        "effective_to": "2026-12-31T23:59:59+08:00",
+        "payload_ref": "DOC-GRID-2026-0917",
+        "payload_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "fact": {
+          "price_cny_per_kwh": "0.32",
+          "window_from": "2026-09-01T00:00:00+08:00",
+          "window_to": "2026-12-31T23:59:59+08:00"
+        }
+      }
+    },
+    {
+      "step": 6,
+      "request": "POST /rounds",
+      "body": {"round_id": "R-2026-09", "note": "东北亚算力第三批评审"}
+    },
+    {
+      "step": 7,
+      "request": "POST /rounds/R-2026-09/proposals/P-LN-01/locks",
+      "body": {
+        "dimension": "power_window",
+        "evidence_id": "EV-PW-A-R3",
+        "revision": 1
+      }
+    },
+    {
+      "step": 8,
+      "request": "POST /rounds/R-2026-09/proposals/P-LN-01/capacity",
+      "body": {}
+    },
+    {
+      "step": 9,
+      "request": "GET /rounds/R-2026-09/proposals/P-LN-01/snapshot",
+      "note": "查看六个维度逐项缺口与容量剩余"
+    },
+    {
+      "step": 10,
+      "request": "GET /rounds/R-2026-09/comparison?mode=auto",
+      "note": "跨境条件不足但仅涉驻留/服务区域的方案，自动按不出域口径参与比较"
+    },
+    {
+      "step": 11,
+      "request": "POST /rounds/R-2026-09/proposals/P-LN-01/decision",
+      "body": {
+        "outcome": "approved",
+        "rationale": "六维证据版本齐备并处于生效窗口，容量已按承诺版本1预留20MW"
+      }
+    },
+    {
+      "step": 12,
+      "request": "GET /decisions/DEC-R-2026-09-P-LN-01",
+      "note": "冻结当时依据；frozen_snapshot 解释为何可行，history 单独列出后来变化"
+    }
+  ]
 }

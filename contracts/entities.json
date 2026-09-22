@@ -1,15 +1,102 @@
 {
-  "schema_version": "1",
+  "schema_version": "2",
   "domain": "东北算力项目边界评估",
-  "required_fields": [
-    "proposal_ref",
-    "site_ref",
-    "grid_node_ref",
-    "capacity_mw",
-    "evidence_revision",
-    "residency_mode"
-  ],
   "time_format": "ISO 8601 with offset",
+  "privacy_rule": "只保存受控引用 payload_ref 与 payload_sha256（64 位小写十六进制），任何报文不得包含企业原始材料",
+  "dimensions": {
+    "power_window": {
+      "label": "园区电力窗口",
+      "subject_field": "site_ref",
+      "fact_fields": {
+        "price_cny_per_kwh": "number",
+        "window_from": "iso8601-offset",
+        "window_to": "iso8601-offset"
+      }
+    },
+    "datacenter_stage": {
+      "label": "机房阶段",
+      "subject_field": "site_ref",
+      "fact_fields": {
+        "stage": "enum: operational | fitting | civil | planned",
+        "available_mw": "number"
+      }
+    },
+    "data_scope": {
+      "label": "工业数据可用范围",
+      "subject_field": "data_collection_ref",
+      "fact_fields": {
+        "categories": "string[]"
+      }
+    },
+    "residency": {
+      "label": "驻留限制",
+      "fact_fields": {
+        "cross_border_allowed": "boolean",
+        "destinations": "string[]"
+      }
+    },
+    "research_grant": {
+      "label": "科研合作授权",
+      "subject_field": "research_grant_ref",
+      "fact_fields": {
+        "granted": "boolean",
+        "program_ref": "string"
+      }
+    },
+    "service_region": {
+      "label": "服务区域",
+      "fact_fields": {
+        "regions": "string[] (CN=境内，其余为跨境目的地代码)"
+      }
+    }
+  },
+  "evidence_status": ["draft", "issued", "superseded", "withdrawn"],
+  "evidence_status_transitions": {
+    "draft": ["issued"],
+    "issued": ["superseded", "withdrawn"],
+    "superseded": [],
+    "withdrawn": []
+  },
+  "modes": {
+    "cross_border": "跨境处理口径",
+    "domestic": "数据不出域口径"
+  },
+  "gap_codes": {
+    "missing_lock": "本轮未锁定该维度证据版本",
+    "not_issued": "证据版本未正式发布（草案/意向不得计入建设条件）",
+    "not_effective": "锁定时点不在证据版本生效窗口内",
+    "fact_malformed": "结构化事实缺失或不合法",
+    "power_price_above_limit": "电价档位高于方案可接受上限",
+    "stage_not_ready": "机房处于土建/规划阶段，不具备装机条件",
+    "datacenter_capacity_short": "机房可用容量低于方案需求",
+    "data_category_uncovered": "授权未覆盖所需工业数据类别",
+    "cross_border_not_permitted": "驻留版本不允许出境（境内口径不受影响）",
+    "research_grant_absent": "科研合作仅有意向、未正式授权",
+    "service_region_domestic_only": "服务区域仅境内，跨境服务未落实（境内口径不受影响）",
+    "service_region_uncovered": "服务区域证据未覆盖所需区域",
+    "capacity_exhausted": "节点剩余容量不足（容量已被其他项目锁定，本方案尚未锁定）",
+    "no_effective_commitment": "锁定时点没有生效中的变电承诺值版本"
+  },
+  "domestic_safe_gap_codes": [
+    "cross_border_not_permitted",
+    "service_region_domestic_only"
+  ],
+  "decision_outcomes": ["approved", "rejected"],
+  "history_note_kinds": [
+    "commitment_changed",
+    "capacity_occupied",
+    "evidence_superseded",
+    "evidence_withdrawn",
+    "window_changed",
+    "general"
+  ],
+  "locking_rules": [
+    "每轮每方案每维度只能锁定一个 issued 且在生效窗口内的证据版本，轮次内不可更换",
+    "容量锁定在单事务内原子完成，数据库触发器保证 held 预留总量不超过锁定所依据承诺版本的 committed_mw",
+    "已 held 预留与已冻结决策不随承诺值下调或他项占用而改变",
+    "批准要求：所选口径六维无缺口且容量已 held；驳回释放 held 预留",
+    "决策行不可变，后续变化只追加到 decision_note 与现行对照，绝不回写 frozen_snapshot"
+  ],
   "sample": {
     "proposal_ref": "PROPOSAL-DEMO",
     "site_ref": "SITE-A",
